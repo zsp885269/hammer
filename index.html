@@ -81,9 +81,13 @@
 	var con = [];
 	function diaoy(){
 		for (var i = 0; i < $(".container").length; i++) {
+			//给自定义属性"left"赋左偏移量
 			$(".container").eq(i).data("left",$(".container").eq(i).offset().left);
+			//给自定义属性"right"赋右偏移量+container的宽度
 			$(".container").eq(i).data("right",$(".container").eq(i).offset().left + $(".container").eq(i).width());
+			//给自定义属性"top"赋右偏移量+container的高度
 			$(".container").eq(i).data("top",$(".container").eq(i).offset().top);
+			//给自定义属性"botton"赋右偏移量+container的高度
 			$(".container").eq(i).data("botton",$(".container").eq(i).offset().top + $(".container").eq(i).height());
 			//canvas中心点
 			$(".container").eq(i).data("Xzhou",$(".container").eq(i).data("left") + ($(".container").eq(i).width())/2);
