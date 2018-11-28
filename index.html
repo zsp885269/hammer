@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>hammer.js使用测试</title>
+	<style>
+		html,body{
+			margin: 0;
+			padding: 0;
+			width: 100px;
+			height: 100px;
+			background-color: #ddd;
+		}
+		#puzzle{
+			position: absolute;
+			top: 40%;
+			left: 20%;
+			width: 340px;
+			height: 260px;
+		}
+		#puzzle .container{
+			float: left;
+			width: 107px;
+			height: 80px;
+			z-index: 1;
+		}
+		#puzzle .container i{
+			display: block;
+			margin: 4px;
+			width: 99px;
+			height: 72px;
+			background-color: #fff;
+		}
+		#video{
+			position: absolute;
+			top: 10%;
+			left: 20%;
+			opacity: 1;
+		}
+		#cas{
+			/*background-color: red;*/
+		}
+		canvas{
+			position: absolute;
+			z-index: 3;
+		}
+		button{
+			position: absolute;
+			top: 50%;
+			left: 10%;
+			width: 100px;
+			height: 50px;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="cas"></canvas>
+	<div id="puzzle">
+		<div class="container" data-index="0" data-pan="0"><i></i></div>
+		<div class="container" data-index="1" data-pan="0"><i></i></div>
+		<div class="container" data-index="2" data-pan="0"><i></i></div>
+		<div class="container" data-index="3" data-pan="0"><i></i></div>
+		<div class="container" data-index="4" data-pan="0"><i></i></div>
+		<div class="container" data-index="5" data-pan="0"><i></i></div>
+		<div class="container" data-index="6" data-pan="0"><i></i></div>
+		<div class="container" data-index="7" data-pan="0"><i></i></div>
+		<div class="container" data-index="8" data-pan="0"><i></i></div>
+	</div>
+	<video width="320" height="240" id="video" autoplay="autoplay" loop muted>
+		<source src="video/movie.mp4"></video>
+	</video>
+</body>
+</html>
+<script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/hammer.js/2.0.8/hammer.js"></script>
+<script type="text/javascript" src="js/jquery.hammer.js"></script>
+<script type="text/javascript">
+	var cas = document.getElementById('cas');
+	var video = document.getElementById("video");
+	var context = cas.getContext("2d");
+	var con = [];
+	function diaoy(){
+		for (var i = 0; i < $(".container").length; i++) {
+			$(".container").eq(i).data("left",$(".container").eq(i).offset().left);
+			$(".container").eq(i).data("right",$(".container").eq(i).offset().left + $(".container").eq(i).width());
+			$(".container").eq(i).data("top",$(".container").eq(i).offset().top);
+			$(".container").eq(i).data("botton",$(".container").eq(i).offset().top + $(".container").eq(i).height());
+			//canvas中心点
+			$(".container").eq(i).data("Xzhou",$(".container").eq(i).data("left") + ($(".container").eq(i).width())/2);
+			$(".container").eq(i).data("Yzhou",$(".container").eq(i).data("top") + ($(".container").eq(i).height())/2);
+		}
+		//创建9个canvas
+		for (var i = 0; i < 9; i++) {
+			var canvas = document.createElement("canvas");
+			var context = canvas.getContext("2d");
+			window.document.body.appendChild(canvas);
+			con[i] = context;
+			canvas.setAttribute("width","107px");
+			canvas.setAttribute("height","80px");
+			canvas.setAttribute("data-index",i);
+			canvas.setAttribute("class","piece");
+			//canvas旋转的度数
+			canvas.setAttribute("data-rotate",(Math.random()*20));
+			canvas.style.left = (Math.random()*window.screen.availWidth/1.5)+"px";
+			canvas.style.top = (Math.random()*window.screen.availHeight/1.5)+"px";
+			canvas.style.transform = "rotate("+canvas.getAttribute("data-rotate")+"deg)";
+		}
+		setInterval(function(){
+			for(var i = 0; i < 9; i++){
+				var row = Math.floor($(".piece").eq(i).data("index")/3);//取余数获取行数
+				var col = Math.floor($(".piece").eq(i).data("index")%3);//取模获得列数
+				con[i].drawImage(video,(col*107),(row*80),107,80,0,0,107,80);
+			}
+		},50);
+		var hammer = $(".piece").hammer();
+		hammer.on("panstart",function(ev){
+			$(this).data("top",$(this).offset().top);
+			$(this).data("left",$(this).offset().left);
+			$(this).data("position",$(this).offset());
+		});
+		hammer.on("panmove",function(ev){
+			var top = $(this).data("position").top;
+			var left = $(this).data("position").left;
+			$(this).css({
+				"top":top + ev.gesture.deltaY,
+				"left":left + ev.gesture.deltaX
+			})
+		});
+		hammer.on("panend",function(ev){
+			var centerX = $(this).data("position").left + ev.gesture.deltaX + (parseInt($(this).css("width"))/2);
+			var centerY = $(this).data("position").top + ev.gesture.deltaY + (parseInt($(this).css("height"))/2);
+			var tt =  $(this).data("index");
+			for (var i = 0; i < $(".container").length; i++) {
+				console.log($(".piece").eq(i).data("index"));
+				console.log($(".container").eq(i).data("index"));
+				if (centerX > $(".container").eq(i).data("left") && centerX < $(".container").eq(i).data("right") && centerY > $(".container").eq(i).data("top") && centerY < $(".container").eq(i).data("botton")) {
+					this.style.transform = "rotate(0deg)";
+					weizhi(tt,centerX,centerY);
+					$(this).css({
+						"top":$(".container").eq(i).data("Yzhou") - 39 + "px",
+						"left":$(".container").eq(i).data("Xzhou") - 55 + "px"
+					})
+				}
+			}
+			console.log(tt);
+			if (centerX > $(".container").eq(tt).data("left") && centerX < $(".container").eq(tt).data("right") && centerY > $(".container").eq(tt).data("top") && centerY < $(".container").eq(tt).data("botton")) {
+				$(".container").eq(tt).data("pan","1");
+				this.style.transform = "rotate(0deg)";
+				$(this).css({
+					"top":$(".container").eq(tt).data("Yzhou") - 39 + "px",
+					"left":$(".container").eq(tt).data("Xzhou") - 55 + "px"
+				})
+			}
+		});
+		function weizhi(tt,x,y){
+			if (x > $(".container").eq(tt).data("left") && x < $(".container").eq(tt).data("right") && y > $(".container").eq(tt).data("top") && y < $(".container").eq(tt).data("botton")) {
+				$(".container").eq(tt).data("pan","1");
+			}	
+			var aa = true;
+			for (var i = 0; i < $(".container").length; i++) {
+				if ($(".container").eq(i).data("pan") == 0) {
+					aa = false;
+				}
+			}
+			if (aa) {
+				alert("游戏结束");
+			}
+		};
+	}
+	diaoy();
+</script>
